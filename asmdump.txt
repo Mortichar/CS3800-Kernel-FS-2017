@@ -1,0 +1,906 @@
+
+myos.bin:     file format elf32-i386
+
+
+Disassembly of section .text:
+
+00101000 <_start-0xc>:
+  101000:	02 b0 ad 1b 03 00    	add    0x31bad(%eax),%dh
+  101006:	00 00                	add    %al,(%eax)
+  101008:	fb                   	sti    
+  101009:	4f                   	dec    %edi
+  10100a:	52                   	push   %edx
+  10100b:	e4                   	.byte 0xe4
+
+0010100c <_start>:
+  10100c:	bc 10 80 10 00       	mov    $0x108010,%esp
+  101011:	e8 1d 00 00 00       	call   101033 <kernel_main>
+  101016:	fa                   	cli    
+  101017:	f4                   	hlt    
+  101018:	eb fd                	jmp    101017 <_start+0xb>
+
+0010101a <new_main>:
+  10101a:	55                   	push   %ebp
+  10101b:	89 e5                	mov    %esp,%ebp
+  10101d:	83 ec 08             	sub    $0x8,%esp
+  101020:	83 ec 0c             	sub    $0xc,%esp
+  101023:	68 00 20 10 00       	push   $0x102000
+  101028:	e8 9e 08 00 00       	call   1018cb <terminal_writestring>
+  10102d:	83 c4 10             	add    $0x10,%esp
+  101030:	90                   	nop
+  101031:	c9                   	leave  
+  101032:	c3                   	ret    
+
+00101033 <kernel_main>:
+  101033:	55                   	push   %ebp
+  101034:	89 e5                	mov    %esp,%ebp
+  101036:	83 ec 08             	sub    $0x8,%esp
+  101039:	b8 1a 10 10 00       	mov    $0x10101a,%eax
+  10103e:	83 ec 0c             	sub    $0xc,%esp
+  101041:	50                   	push   %eax
+  101042:	e8 a9 02 00 00       	call   1012f0 <create_tss>
+  101047:	83 c4 10             	add    $0x10,%esp
+  10104a:	e8 af 02 00 00       	call   1012fe <create_gdt>
+  10104f:	83 ec 08             	sub    $0x8,%esp
+  101052:	6a 28                	push   $0x28
+  101054:	6a 20                	push   $0x20
+  101056:	e8 d3 03 00 00       	call   10142e <PIC_remap>
+  10105b:	83 c4 10             	add    $0x10,%esp
+  10105e:	e8 b0 04 00 00       	call   101513 <IRQ_mask_all>
+  101063:	b8 0a 16 10 00       	mov    $0x10160a,%eax
+  101068:	83 ec 08             	sub    $0x8,%esp
+  10106b:	50                   	push   %eax
+  10106c:	6a 21                	push   $0x21
+  10106e:	e8 67 01 00 00       	call   1011da <add_idt_entry>
+  101073:	83 c4 10             	add    $0x10,%esp
+  101076:	83 ec 0c             	sub    $0xc,%esp
+  101079:	6a 01                	push   $0x1
+  10107b:	e8 1a 05 00 00       	call   10159a <IRQ_clear_mask>
+  101080:	83 c4 10             	add    $0x10,%esp
+  101083:	b8 54 16 10 00       	mov    $0x101654,%eax
+  101088:	83 ec 08             	sub    $0x8,%esp
+  10108b:	50                   	push   %eax
+  10108c:	6a 42                	push   $0x42
+  10108e:	e8 47 01 00 00       	call   1011da <add_idt_entry>
+  101093:	83 c4 10             	add    $0x10,%esp
+  101096:	e8 61 05 00 00       	call   1015fc <enable_interrupts>
+  10109b:	e8 3b 06 00 00       	call   1016db <terminal_initialize>
+  1010a0:	83 ec 0c             	sub    $0xc,%esp
+  1010a3:	68 2c 20 10 00       	push   $0x10202c
+  1010a8:	e8 1e 08 00 00       	call   1018cb <terminal_writestring>
+  1010ad:	83 c4 10             	add    $0x10,%esp
+  1010b0:	cd 42                	int    $0x42
+  1010b2:	f4                   	hlt    
+  1010b3:	eb fd                	jmp    1010b2 <kernel_main+0x7f>
+
+001010b5 <inb>:
+  1010b5:	55                   	push   %ebp
+  1010b6:	89 e5                	mov    %esp,%ebp
+  1010b8:	83 ec 14             	sub    $0x14,%esp
+  1010bb:	8b 45 08             	mov    0x8(%ebp),%eax
+  1010be:	66 89 45 ec          	mov    %ax,-0x14(%ebp)
+  1010c2:	0f b7 45 ec          	movzwl -0x14(%ebp),%eax
+  1010c6:	89 c2                	mov    %eax,%edx
+  1010c8:	ec                   	in     (%dx),%al
+  1010c9:	88 45 ff             	mov    %al,-0x1(%ebp)
+  1010cc:	0f b6 45 ff          	movzbl -0x1(%ebp),%eax
+  1010d0:	c9                   	leave  
+  1010d1:	c3                   	ret    
+
+001010d2 <nybble2char>:
+  1010d2:	55                   	push   %ebp
+  1010d3:	89 e5                	mov    %esp,%ebp
+  1010d5:	83 ec 04             	sub    $0x4,%esp
+  1010d8:	8b 45 08             	mov    0x8(%ebp),%eax
+  1010db:	88 45 fc             	mov    %al,-0x4(%ebp)
+  1010de:	80 65 fc 0f          	andb   $0xf,-0x4(%ebp)
+  1010e2:	80 7d fc 09          	cmpb   $0x9,-0x4(%ebp)
+  1010e6:	76 09                	jbe    1010f1 <nybble2char+0x1f>
+  1010e8:	0f b6 45 fc          	movzbl -0x4(%ebp),%eax
+  1010ec:	83 c0 37             	add    $0x37,%eax
+  1010ef:	eb 07                	jmp    1010f8 <nybble2char+0x26>
+  1010f1:	0f b6 45 fc          	movzbl -0x4(%ebp),%eax
+  1010f5:	83 c0 30             	add    $0x30,%eax
+  1010f8:	c9                   	leave  
+  1010f9:	c3                   	ret    
+
+001010fa <byte2chars>:
+  1010fa:	55                   	push   %ebp
+  1010fb:	89 e5                	mov    %esp,%ebp
+  1010fd:	53                   	push   %ebx
+  1010fe:	83 ec 04             	sub    $0x4,%esp
+  101101:	8b 45 08             	mov    0x8(%ebp),%eax
+  101104:	88 45 f8             	mov    %al,-0x8(%ebp)
+  101107:	0f b6 45 f8          	movzbl -0x8(%ebp),%eax
+  10110b:	c0 e8 04             	shr    $0x4,%al
+  10110e:	0f b6 c0             	movzbl %al,%eax
+  101111:	50                   	push   %eax
+  101112:	e8 bb ff ff ff       	call   1010d2 <nybble2char>
+  101117:	83 c4 04             	add    $0x4,%esp
+  10111a:	89 c2                	mov    %eax,%edx
+  10111c:	8b 45 0c             	mov    0xc(%ebp),%eax
+  10111f:	88 10                	mov    %dl,(%eax)
+  101121:	0f b6 45 f8          	movzbl -0x8(%ebp),%eax
+  101125:	8b 55 0c             	mov    0xc(%ebp),%edx
+  101128:	8d 5a 01             	lea    0x1(%edx),%ebx
+  10112b:	50                   	push   %eax
+  10112c:	e8 a1 ff ff ff       	call   1010d2 <nybble2char>
+  101131:	83 c4 04             	add    $0x4,%esp
+  101134:	88 03                	mov    %al,(%ebx)
+  101136:	8b 45 0c             	mov    0xc(%ebp),%eax
+  101139:	83 c0 02             	add    $0x2,%eax
+  10113c:	c6 00 00             	movb   $0x0,(%eax)
+  10113f:	90                   	nop
+  101140:	8b 5d fc             	mov    -0x4(%ebp),%ebx
+  101143:	c9                   	leave  
+  101144:	c3                   	ret    
+
+00101145 <getScancode_loop>:
+  101145:	55                   	push   %ebp
+  101146:	89 e5                	mov    %esp,%ebp
+  101148:	83 ec 10             	sub    $0x10,%esp
+  10114b:	c6 45 ff 00          	movb   $0x0,-0x1(%ebp)
+  10114f:	6a 60                	push   $0x60
+  101151:	e8 5f ff ff ff       	call   1010b5 <inb>
+  101156:	83 c4 04             	add    $0x4,%esp
+  101159:	88 45 ff             	mov    %al,-0x1(%ebp)
+  10115c:	0f b6 05 10 80 10 00 	movzbl 0x108010,%eax
+  101163:	38 45 ff             	cmp    %al,-0x1(%ebp)
+  101166:	74 e7                	je     10114f <getScancode_loop+0xa>
+  101168:	0f b6 45 ff          	movzbl -0x1(%ebp),%eax
+  10116c:	a2 10 80 10 00       	mov    %al,0x108010
+  101171:	0f b6 45 ff          	movzbl -0x1(%ebp),%eax
+  101175:	c9                   	leave  
+  101176:	c3                   	ret    
+
+00101177 <getScancode>:
+  101177:	55                   	push   %ebp
+  101178:	89 e5                	mov    %esp,%ebp
+  10117a:	6a 60                	push   $0x60
+  10117c:	e8 34 ff ff ff       	call   1010b5 <inb>
+  101181:	83 c4 04             	add    $0x4,%esp
+  101184:	c9                   	leave  
+  101185:	c3                   	ret    
+
+00101186 <getScancodeByte_loop>:
+  101186:	55                   	push   %ebp
+  101187:	89 e5                	mov    %esp,%ebp
+  101189:	e8 b7 ff ff ff       	call   101145 <getScancode_loop>
+  10118e:	0f b6 c0             	movzbl %al,%eax
+  101191:	ff 75 08             	pushl  0x8(%ebp)
+  101194:	50                   	push   %eax
+  101195:	e8 60 ff ff ff       	call   1010fa <byte2chars>
+  10119a:	83 c4 08             	add    $0x8,%esp
+  10119d:	90                   	nop
+  10119e:	c9                   	leave  
+  10119f:	c3                   	ret    
+
+001011a0 <getScancodeByte>:
+  1011a0:	55                   	push   %ebp
+  1011a1:	89 e5                	mov    %esp,%ebp
+  1011a3:	e8 cf ff ff ff       	call   101177 <getScancode>
+  1011a8:	0f b6 c0             	movzbl %al,%eax
+  1011ab:	ff 75 08             	pushl  0x8(%ebp)
+  1011ae:	50                   	push   %eax
+  1011af:	e8 46 ff ff ff       	call   1010fa <byte2chars>
+  1011b4:	83 c4 08             	add    $0x8,%esp
+  1011b7:	90                   	nop
+  1011b8:	c9                   	leave  
+  1011b9:	c3                   	ret    
+
+001011ba <set_idt>:
+  1011ba:	55                   	push   %ebp
+  1011bb:	89 e5                	mov    %esp,%ebp
+  1011bd:	83 ec 10             	sub    $0x10,%esp
+  1011c0:	ba 40 80 10 00       	mov    $0x108040,%edx
+  1011c5:	b9 ff 07 00 00       	mov    $0x7ff,%ecx
+  1011ca:	8d 45 fa             	lea    -0x6(%ebp),%eax
+  1011cd:	89 50 02             	mov    %edx,0x2(%eax)
+  1011d0:	66 89 08             	mov    %cx,(%eax)
+  1011d3:	66 0f 01 18          	lidtw  (%eax)
+  1011d7:	90                   	nop
+  1011d8:	c9                   	leave  
+  1011d9:	c3                   	ret    
+
+001011da <add_idt_entry>:
+  1011da:	55                   	push   %ebp
+  1011db:	89 e5                	mov    %esp,%ebp
+  1011dd:	83 ec 14             	sub    $0x14,%esp
+  1011e0:	8b 45 08             	mov    0x8(%ebp),%eax
+  1011e3:	88 45 ec             	mov    %al,-0x14(%ebp)
+  1011e6:	0f b6 45 ec          	movzbl -0x14(%ebp),%eax
+  1011ea:	c1 e0 03             	shl    $0x3,%eax
+  1011ed:	05 40 80 10 00       	add    $0x108040,%eax
+  1011f2:	89 45 fc             	mov    %eax,-0x4(%ebp)
+  1011f5:	8b 45 0c             	mov    0xc(%ebp),%eax
+  1011f8:	89 c2                	mov    %eax,%edx
+  1011fa:	8b 45 fc             	mov    -0x4(%ebp),%eax
+  1011fd:	66 89 10             	mov    %dx,(%eax)
+  101200:	8b 45 0c             	mov    0xc(%ebp),%eax
+  101203:	c1 e8 10             	shr    $0x10,%eax
+  101206:	89 c2                	mov    %eax,%edx
+  101208:	8b 45 fc             	mov    -0x4(%ebp),%eax
+  10120b:	66 89 50 06          	mov    %dx,0x6(%eax)
+  10120f:	8b 45 fc             	mov    -0x4(%ebp),%eax
+  101212:	c6 40 04 00          	movb   $0x0,0x4(%eax)
+  101216:	8b 45 fc             	mov    -0x4(%ebp),%eax
+  101219:	66 c7 40 02 08 00    	movw   $0x8,0x2(%eax)
+  10121f:	8b 45 fc             	mov    -0x4(%ebp),%eax
+  101222:	c6 40 05 8e          	movb   $0x8e,0x5(%eax)
+  101226:	e8 8f ff ff ff       	call   1011ba <set_idt>
+  10122b:	90                   	nop
+  10122c:	c9                   	leave  
+  10122d:	c3                   	ret    
+
+0010122e <encode_gdt_entry>:
+  10122e:	55                   	push   %ebp
+  10122f:	89 e5                	mov    %esp,%ebp
+  101231:	8b 45 10             	mov    0x10(%ebp),%eax
+  101234:	3d 00 00 01 00       	cmp    $0x10000,%eax
+  101239:	8b 45 10             	mov    0x10(%ebp),%eax
+  10123c:	3d 00 00 01 00       	cmp    $0x10000,%eax
+  101241:	76 14                	jbe    101257 <encode_gdt_entry+0x29>
+  101243:	8b 45 10             	mov    0x10(%ebp),%eax
+  101246:	c1 e8 0c             	shr    $0xc,%eax
+  101249:	89 45 10             	mov    %eax,0x10(%ebp)
+  10124c:	8b 45 08             	mov    0x8(%ebp),%eax
+  10124f:	83 c0 06             	add    $0x6,%eax
+  101252:	c6 00 c0             	movb   $0xc0,(%eax)
+  101255:	eb 09                	jmp    101260 <encode_gdt_entry+0x32>
+  101257:	8b 45 08             	mov    0x8(%ebp),%eax
+  10125a:	83 c0 06             	add    $0x6,%eax
+  10125d:	c6 00 40             	movb   $0x40,(%eax)
+  101260:	8b 45 10             	mov    0x10(%ebp),%eax
+  101263:	89 c2                	mov    %eax,%edx
+  101265:	8b 45 08             	mov    0x8(%ebp),%eax
+  101268:	88 10                	mov    %dl,(%eax)
+  10126a:	8b 45 10             	mov    0x10(%ebp),%eax
+  10126d:	c1 e8 08             	shr    $0x8,%eax
+  101270:	89 c2                	mov    %eax,%edx
+  101272:	8b 45 08             	mov    0x8(%ebp),%eax
+  101275:	83 c0 01             	add    $0x1,%eax
+  101278:	88 10                	mov    %dl,(%eax)
+  10127a:	8b 45 08             	mov    0x8(%ebp),%eax
+  10127d:	83 c0 06             	add    $0x6,%eax
+  101280:	0f b6 10             	movzbl (%eax),%edx
+  101283:	8b 45 10             	mov    0x10(%ebp),%eax
+  101286:	c1 e8 10             	shr    $0x10,%eax
+  101289:	83 e0 0f             	and    $0xf,%eax
+  10128c:	89 c1                	mov    %eax,%ecx
+  10128e:	8b 45 08             	mov    0x8(%ebp),%eax
+  101291:	83 c0 06             	add    $0x6,%eax
+  101294:	09 ca                	or     %ecx,%edx
+  101296:	88 10                	mov    %dl,(%eax)
+  101298:	8b 55 0c             	mov    0xc(%ebp),%edx
+  10129b:	8b 45 08             	mov    0x8(%ebp),%eax
+  10129e:	83 c0 02             	add    $0x2,%eax
+  1012a1:	88 10                	mov    %dl,(%eax)
+  1012a3:	8b 45 0c             	mov    0xc(%ebp),%eax
+  1012a6:	c1 e8 08             	shr    $0x8,%eax
+  1012a9:	89 c2                	mov    %eax,%edx
+  1012ab:	8b 45 08             	mov    0x8(%ebp),%eax
+  1012ae:	83 c0 03             	add    $0x3,%eax
+  1012b1:	88 10                	mov    %dl,(%eax)
+  1012b3:	8b 45 0c             	mov    0xc(%ebp),%eax
+  1012b6:	c1 e8 10             	shr    $0x10,%eax
+  1012b9:	89 c2                	mov    %eax,%edx
+  1012bb:	8b 45 08             	mov    0x8(%ebp),%eax
+  1012be:	83 c0 04             	add    $0x4,%eax
+  1012c1:	88 10                	mov    %dl,(%eax)
+  1012c3:	8b 45 0c             	mov    0xc(%ebp),%eax
+  1012c6:	c1 e8 18             	shr    $0x18,%eax
+  1012c9:	89 c2                	mov    %eax,%edx
+  1012cb:	8b 45 08             	mov    0x8(%ebp),%eax
+  1012ce:	83 c0 07             	add    $0x7,%eax
+  1012d1:	88 10                	mov    %dl,(%eax)
+  1012d3:	8b 45 08             	mov    0x8(%ebp),%eax
+  1012d6:	8d 50 05             	lea    0x5(%eax),%edx
+  1012d9:	0f b6 45 14          	movzbl 0x14(%ebp),%eax
+  1012dd:	88 02                	mov    %al,(%edx)
+  1012df:	90                   	nop
+  1012e0:	5d                   	pop    %ebp
+  1012e1:	c3                   	ret    
+
+001012e2 <set_ltr>:
+  1012e2:	55                   	push   %ebp
+  1012e3:	89 e5                	mov    %esp,%ebp
+  1012e5:	b8 18 00 00 00       	mov    $0x18,%eax
+  1012ea:	0f 00 d8             	ltr    %ax
+  1012ed:	90                   	nop
+  1012ee:	5d                   	pop    %ebp
+  1012ef:	c3                   	ret    
+
+001012f0 <create_tss>:
+  1012f0:	55                   	push   %ebp
+  1012f1:	89 e5                	mov    %esp,%ebp
+  1012f3:	8b 45 08             	mov    0x8(%ebp),%eax
+  1012f6:	a3 04 30 10 00       	mov    %eax,0x103004
+  1012fb:	90                   	nop
+  1012fc:	5d                   	pop    %ebp
+  1012fd:	c3                   	ret    
+
+001012fe <create_gdt>:
+  1012fe:	55                   	push   %ebp
+  1012ff:	89 e5                	mov    %esp,%ebp
+  101301:	83 ec 18             	sub    $0x18,%esp
+  101304:	c7 45 f4 20 80 10 00 	movl   $0x108020,-0xc(%ebp)
+  10130b:	c7 45 ec 80 30 10 00 	movl   $0x103080,-0x14(%ebp)
+  101312:	c6 45 eb 04          	movb   $0x4,-0x15(%ebp)
+  101316:	c6 45 f3 00          	movb   $0x0,-0xd(%ebp)
+  10131a:	eb 35                	jmp    101351 <create_gdt+0x53>
+  10131c:	0f b6 55 f3          	movzbl -0xd(%ebp),%edx
+  101320:	89 d0                	mov    %edx,%eax
+  101322:	01 c0                	add    %eax,%eax
+  101324:	01 d0                	add    %edx,%eax
+  101326:	c1 e0 02             	shl    $0x2,%eax
+  101329:	89 c2                	mov    %eax,%edx
+  10132b:	8b 45 ec             	mov    -0x14(%ebp),%eax
+  10132e:	01 d0                	add    %edx,%eax
+  101330:	ff 70 08             	pushl  0x8(%eax)
+  101333:	ff 70 04             	pushl  0x4(%eax)
+  101336:	ff 30                	pushl  (%eax)
+  101338:	ff 75 f4             	pushl  -0xc(%ebp)
+  10133b:	e8 ee fe ff ff       	call   10122e <encode_gdt_entry>
+  101340:	83 c4 10             	add    $0x10,%esp
+  101343:	83 45 f4 08          	addl   $0x8,-0xc(%ebp)
+  101347:	0f b6 45 f3          	movzbl -0xd(%ebp),%eax
+  10134b:	83 c0 01             	add    $0x1,%eax
+  10134e:	88 45 f3             	mov    %al,-0xd(%ebp)
+  101351:	0f b6 45 f3          	movzbl -0xd(%ebp),%eax
+  101355:	3a 45 eb             	cmp    -0x15(%ebp),%al
+  101358:	72 c2                	jb     10131c <create_gdt+0x1e>
+  10135a:	83 ec 08             	sub    $0x8,%esp
+  10135d:	6a 1f                	push   $0x1f
+  10135f:	68 20 80 10 00       	push   $0x108020
+  101364:	e8 10 00 00 00       	call   101379 <set_gdt>
+  101369:	83 c4 10             	add    $0x10,%esp
+  10136c:	e8 71 ff ff ff       	call   1012e2 <set_ltr>
+  101371:	e8 27 00 00 00       	call   10139d <reload_segments>
+  101376:	90                   	nop
+  101377:	c9                   	leave  
+  101378:	c3                   	ret    
+
+00101379 <set_gdt>:
+  101379:	55                   	push   %ebp
+  10137a:	89 e5                	mov    %esp,%ebp
+  10137c:	83 ec 14             	sub    $0x14,%esp
+  10137f:	8b 45 0c             	mov    0xc(%ebp),%eax
+  101382:	66 89 45 ec          	mov    %ax,-0x14(%ebp)
+  101386:	8b 45 08             	mov    0x8(%ebp),%eax
+  101389:	0f b7 55 ec          	movzwl -0x14(%ebp),%edx
+  10138d:	8d 4d fa             	lea    -0x6(%ebp),%ecx
+  101390:	89 41 02             	mov    %eax,0x2(%ecx)
+  101393:	66 89 11             	mov    %dx,(%ecx)
+  101396:	66 0f 01 11          	lgdtw  (%ecx)
+  10139a:	90                   	nop
+  10139b:	c9                   	leave  
+  10139c:	c3                   	ret    
+
+0010139d <reload_segments>:
+  10139d:	55                   	push   %ebp
+  10139e:	89 e5                	mov    %esp,%ebp
+  1013a0:	ea a7 13 10 00 08 00 	ljmp   $0x8,$0x1013a7
+
+001013a7 <reload_CS278>:
+  1013a7:	66 b8 10 00          	mov    $0x10,%ax
+  1013ab:	8e d8                	mov    %eax,%ds
+  1013ad:	8e c0                	mov    %eax,%es
+  1013af:	8e e0                	mov    %eax,%fs
+  1013b1:	8e e8                	mov    %eax,%gs
+  1013b3:	8e d0                	mov    %eax,%ss
+  1013b5:	90                   	nop
+  1013b6:	5d                   	pop    %ebp
+  1013b7:	c3                   	ret    
+
+001013b8 <io_wait>:
+  1013b8:	55                   	push   %ebp
+  1013b9:	89 e5                	mov    %esp,%ebp
+  1013bb:	eb 00                	jmp    1013bd <io_wait+0x5>
+  1013bd:	eb 00                	jmp    1013bf <io_wait+0x7>
+  1013bf:	90                   	nop
+  1013c0:	5d                   	pop    %ebp
+  1013c1:	c3                   	ret    
+
+001013c2 <outb>:
+  1013c2:	55                   	push   %ebp
+  1013c3:	89 e5                	mov    %esp,%ebp
+  1013c5:	83 ec 08             	sub    $0x8,%esp
+  1013c8:	8b 55 08             	mov    0x8(%ebp),%edx
+  1013cb:	8b 45 0c             	mov    0xc(%ebp),%eax
+  1013ce:	66 89 55 fc          	mov    %dx,-0x4(%ebp)
+  1013d2:	88 45 f8             	mov    %al,-0x8(%ebp)
+  1013d5:	0f b6 45 f8          	movzbl -0x8(%ebp),%eax
+  1013d9:	0f b7 55 fc          	movzwl -0x4(%ebp),%edx
+  1013dd:	ee                   	out    %al,(%dx)
+  1013de:	90                   	nop
+  1013df:	c9                   	leave  
+  1013e0:	c3                   	ret    
+
+001013e1 <inb>:
+  1013e1:	55                   	push   %ebp
+  1013e2:	89 e5                	mov    %esp,%ebp
+  1013e4:	83 ec 14             	sub    $0x14,%esp
+  1013e7:	8b 45 08             	mov    0x8(%ebp),%eax
+  1013ea:	66 89 45 ec          	mov    %ax,-0x14(%ebp)
+  1013ee:	0f b7 45 ec          	movzwl -0x14(%ebp),%eax
+  1013f2:	89 c2                	mov    %eax,%edx
+  1013f4:	ec                   	in     (%dx),%al
+  1013f5:	88 45 ff             	mov    %al,-0x1(%ebp)
+  1013f8:	0f b6 45 ff          	movzbl -0x1(%ebp),%eax
+  1013fc:	c9                   	leave  
+  1013fd:	c3                   	ret    
+
+001013fe <PIC_sendEOI>:
+  1013fe:	55                   	push   %ebp
+  1013ff:	89 e5                	mov    %esp,%ebp
+  101401:	83 ec 04             	sub    $0x4,%esp
+  101404:	8b 45 08             	mov    0x8(%ebp),%eax
+  101407:	88 45 fc             	mov    %al,-0x4(%ebp)
+  10140a:	80 7d fc 07          	cmpb   $0x7,-0x4(%ebp)
+  10140e:	76 0f                	jbe    10141f <PIC_sendEOI+0x21>
+  101410:	6a 20                	push   $0x20
+  101412:	68 a0 00 00 00       	push   $0xa0
+  101417:	e8 a6 ff ff ff       	call   1013c2 <outb>
+  10141c:	83 c4 08             	add    $0x8,%esp
+  10141f:	6a 20                	push   $0x20
+  101421:	6a 20                	push   $0x20
+  101423:	e8 9a ff ff ff       	call   1013c2 <outb>
+  101428:	83 c4 08             	add    $0x8,%esp
+  10142b:	90                   	nop
+  10142c:	c9                   	leave  
+  10142d:	c3                   	ret    
+
+0010142e <PIC_remap>:
+  10142e:	55                   	push   %ebp
+  10142f:	89 e5                	mov    %esp,%ebp
+  101431:	83 ec 10             	sub    $0x10,%esp
+  101434:	6a 21                	push   $0x21
+  101436:	e8 a6 ff ff ff       	call   1013e1 <inb>
+  10143b:	83 c4 04             	add    $0x4,%esp
+  10143e:	88 45 ff             	mov    %al,-0x1(%ebp)
+  101441:	68 a1 00 00 00       	push   $0xa1
+  101446:	e8 96 ff ff ff       	call   1013e1 <inb>
+  10144b:	83 c4 04             	add    $0x4,%esp
+  10144e:	88 45 fe             	mov    %al,-0x2(%ebp)
+  101451:	6a 11                	push   $0x11
+  101453:	6a 20                	push   $0x20
+  101455:	e8 68 ff ff ff       	call   1013c2 <outb>
+  10145a:	83 c4 08             	add    $0x8,%esp
+  10145d:	e8 56 ff ff ff       	call   1013b8 <io_wait>
+  101462:	6a 11                	push   $0x11
+  101464:	68 a0 00 00 00       	push   $0xa0
+  101469:	e8 54 ff ff ff       	call   1013c2 <outb>
+  10146e:	83 c4 08             	add    $0x8,%esp
+  101471:	e8 42 ff ff ff       	call   1013b8 <io_wait>
+  101476:	8b 45 08             	mov    0x8(%ebp),%eax
+  101479:	0f b6 c0             	movzbl %al,%eax
+  10147c:	50                   	push   %eax
+  10147d:	6a 21                	push   $0x21
+  10147f:	e8 3e ff ff ff       	call   1013c2 <outb>
+  101484:	83 c4 08             	add    $0x8,%esp
+  101487:	e8 2c ff ff ff       	call   1013b8 <io_wait>
+  10148c:	8b 45 0c             	mov    0xc(%ebp),%eax
+  10148f:	0f b6 c0             	movzbl %al,%eax
+  101492:	50                   	push   %eax
+  101493:	68 a1 00 00 00       	push   $0xa1
+  101498:	e8 25 ff ff ff       	call   1013c2 <outb>
+  10149d:	83 c4 08             	add    $0x8,%esp
+  1014a0:	e8 13 ff ff ff       	call   1013b8 <io_wait>
+  1014a5:	6a 04                	push   $0x4
+  1014a7:	6a 21                	push   $0x21
+  1014a9:	e8 14 ff ff ff       	call   1013c2 <outb>
+  1014ae:	83 c4 08             	add    $0x8,%esp
+  1014b1:	e8 02 ff ff ff       	call   1013b8 <io_wait>
+  1014b6:	6a 02                	push   $0x2
+  1014b8:	68 a1 00 00 00       	push   $0xa1
+  1014bd:	e8 00 ff ff ff       	call   1013c2 <outb>
+  1014c2:	83 c4 08             	add    $0x8,%esp
+  1014c5:	e8 ee fe ff ff       	call   1013b8 <io_wait>
+  1014ca:	6a 01                	push   $0x1
+  1014cc:	6a 21                	push   $0x21
+  1014ce:	e8 ef fe ff ff       	call   1013c2 <outb>
+  1014d3:	83 c4 08             	add    $0x8,%esp
+  1014d6:	e8 dd fe ff ff       	call   1013b8 <io_wait>
+  1014db:	6a 01                	push   $0x1
+  1014dd:	68 a1 00 00 00       	push   $0xa1
+  1014e2:	e8 db fe ff ff       	call   1013c2 <outb>
+  1014e7:	83 c4 08             	add    $0x8,%esp
+  1014ea:	e8 c9 fe ff ff       	call   1013b8 <io_wait>
+  1014ef:	0f b6 45 ff          	movzbl -0x1(%ebp),%eax
+  1014f3:	50                   	push   %eax
+  1014f4:	6a 21                	push   $0x21
+  1014f6:	e8 c7 fe ff ff       	call   1013c2 <outb>
+  1014fb:	83 c4 08             	add    $0x8,%esp
+  1014fe:	0f b6 45 fe          	movzbl -0x2(%ebp),%eax
+  101502:	50                   	push   %eax
+  101503:	68 a1 00 00 00       	push   $0xa1
+  101508:	e8 b5 fe ff ff       	call   1013c2 <outb>
+  10150d:	83 c4 08             	add    $0x8,%esp
+  101510:	90                   	nop
+  101511:	c9                   	leave  
+  101512:	c3                   	ret    
+
+00101513 <IRQ_mask_all>:
+  101513:	55                   	push   %ebp
+  101514:	89 e5                	mov    %esp,%ebp
+  101516:	68 ff 00 00 00       	push   $0xff
+  10151b:	6a 21                	push   $0x21
+  10151d:	e8 a0 fe ff ff       	call   1013c2 <outb>
+  101522:	83 c4 08             	add    $0x8,%esp
+  101525:	68 ff 00 00 00       	push   $0xff
+  10152a:	68 a1 00 00 00       	push   $0xa1
+  10152f:	e8 8e fe ff ff       	call   1013c2 <outb>
+  101534:	83 c4 08             	add    $0x8,%esp
+  101537:	90                   	nop
+  101538:	c9                   	leave  
+  101539:	c3                   	ret    
+
+0010153a <IRQ_set_mask>:
+  10153a:	55                   	push   %ebp
+  10153b:	89 e5                	mov    %esp,%ebp
+  10153d:	53                   	push   %ebx
+  10153e:	83 ec 14             	sub    $0x14,%esp
+  101541:	8b 45 08             	mov    0x8(%ebp),%eax
+  101544:	88 45 e8             	mov    %al,-0x18(%ebp)
+  101547:	80 7d e8 07          	cmpb   $0x7,-0x18(%ebp)
+  10154b:	77 08                	ja     101555 <IRQ_set_mask+0x1b>
+  10154d:	66 c7 45 fa 21 00    	movw   $0x21,-0x6(%ebp)
+  101553:	eb 0a                	jmp    10155f <IRQ_set_mask+0x25>
+  101555:	66 c7 45 fa a1 00    	movw   $0xa1,-0x6(%ebp)
+  10155b:	80 6d e8 08          	subb   $0x8,-0x18(%ebp)
+  10155f:	0f b7 45 fa          	movzwl -0x6(%ebp),%eax
+  101563:	50                   	push   %eax
+  101564:	e8 78 fe ff ff       	call   1013e1 <inb>
+  101569:	83 c4 04             	add    $0x4,%esp
+  10156c:	89 c3                	mov    %eax,%ebx
+  10156e:	0f b6 45 e8          	movzbl -0x18(%ebp),%eax
+  101572:	ba 01 00 00 00       	mov    $0x1,%edx
+  101577:	89 c1                	mov    %eax,%ecx
+  101579:	d3 e2                	shl    %cl,%edx
+  10157b:	89 d0                	mov    %edx,%eax
+  10157d:	09 d8                	or     %ebx,%eax
+  10157f:	88 45 f9             	mov    %al,-0x7(%ebp)
+  101582:	0f b6 55 f9          	movzbl -0x7(%ebp),%edx
+  101586:	0f b7 45 fa          	movzwl -0x6(%ebp),%eax
+  10158a:	52                   	push   %edx
+  10158b:	50                   	push   %eax
+  10158c:	e8 31 fe ff ff       	call   1013c2 <outb>
+  101591:	83 c4 08             	add    $0x8,%esp
+  101594:	90                   	nop
+  101595:	8b 5d fc             	mov    -0x4(%ebp),%ebx
+  101598:	c9                   	leave  
+  101599:	c3                   	ret    
+
+0010159a <IRQ_clear_mask>:
+  10159a:	55                   	push   %ebp
+  10159b:	89 e5                	mov    %esp,%ebp
+  10159d:	53                   	push   %ebx
+  10159e:	83 ec 14             	sub    $0x14,%esp
+  1015a1:	8b 45 08             	mov    0x8(%ebp),%eax
+  1015a4:	88 45 e8             	mov    %al,-0x18(%ebp)
+  1015a7:	80 7d e8 07          	cmpb   $0x7,-0x18(%ebp)
+  1015ab:	77 08                	ja     1015b5 <IRQ_clear_mask+0x1b>
+  1015ad:	66 c7 45 fa 21 00    	movw   $0x21,-0x6(%ebp)
+  1015b3:	eb 0a                	jmp    1015bf <IRQ_clear_mask+0x25>
+  1015b5:	66 c7 45 fa a1 00    	movw   $0xa1,-0x6(%ebp)
+  1015bb:	80 6d e8 08          	subb   $0x8,-0x18(%ebp)
+  1015bf:	0f b7 45 fa          	movzwl -0x6(%ebp),%eax
+  1015c3:	50                   	push   %eax
+  1015c4:	e8 18 fe ff ff       	call   1013e1 <inb>
+  1015c9:	83 c4 04             	add    $0x4,%esp
+  1015cc:	89 c2                	mov    %eax,%edx
+  1015ce:	0f b6 45 e8          	movzbl -0x18(%ebp),%eax
+  1015d2:	bb 01 00 00 00       	mov    $0x1,%ebx
+  1015d7:	89 c1                	mov    %eax,%ecx
+  1015d9:	d3 e3                	shl    %cl,%ebx
+  1015db:	89 d8                	mov    %ebx,%eax
+  1015dd:	f7 d0                	not    %eax
+  1015df:	21 d0                	and    %edx,%eax
+  1015e1:	88 45 f9             	mov    %al,-0x7(%ebp)
+  1015e4:	0f b6 55 f9          	movzbl -0x7(%ebp),%edx
+  1015e8:	0f b7 45 fa          	movzwl -0x6(%ebp),%eax
+  1015ec:	52                   	push   %edx
+  1015ed:	50                   	push   %eax
+  1015ee:	e8 cf fd ff ff       	call   1013c2 <outb>
+  1015f3:	83 c4 08             	add    $0x8,%esp
+  1015f6:	90                   	nop
+  1015f7:	8b 5d fc             	mov    -0x4(%ebp),%ebx
+  1015fa:	c9                   	leave  
+  1015fb:	c3                   	ret    
+
+001015fc <enable_interrupts>:
+  1015fc:	55                   	push   %ebp
+  1015fd:	89 e5                	mov    %esp,%ebp
+  1015ff:	fb                   	sti    
+  101600:	90                   	nop
+  101601:	5d                   	pop    %ebp
+  101602:	c3                   	ret    
+
+00101603 <disable_interrupts>:
+  101603:	55                   	push   %ebp
+  101604:	89 e5                	mov    %esp,%ebp
+  101606:	fa                   	cli    
+  101607:	90                   	nop
+  101608:	5d                   	pop    %ebp
+  101609:	c3                   	ret    
+
+0010160a <keypress>:
+  10160a:	55                   	push   %ebp
+  10160b:	89 e5                	mov    %esp,%ebp
+  10160d:	51                   	push   %ecx
+  10160e:	52                   	push   %edx
+  10160f:	50                   	push   %eax
+  101610:	83 e4 f0             	and    $0xfffffff0,%esp
+  101613:	83 ec 30             	sub    $0x30,%esp
+  101616:	8d 45 04             	lea    0x4(%ebp),%eax
+  101619:	89 44 24 1c          	mov    %eax,0x1c(%esp)
+  10161d:	83 ec 0c             	sub    $0xc,%esp
+  101620:	8d 44 24 39          	lea    0x39(%esp),%eax
+  101624:	50                   	push   %eax
+  101625:	fc                   	cld    
+  101626:	e8 75 fb ff ff       	call   1011a0 <getScancodeByte>
+  10162b:	83 c4 10             	add    $0x10,%esp
+  10162e:	83 ec 0c             	sub    $0xc,%esp
+  101631:	8d 44 24 39          	lea    0x39(%esp),%eax
+  101635:	50                   	push   %eax
+  101636:	e8 90 02 00 00       	call   1018cb <terminal_writestring>
+  10163b:	83 c4 10             	add    $0x10,%esp
+  10163e:	83 ec 0c             	sub    $0xc,%esp
+  101641:	6a 01                	push   $0x1
+  101643:	e8 b6 fd ff ff       	call   1013fe <PIC_sendEOI>
+  101648:	83 c4 10             	add    $0x10,%esp
+  10164b:	90                   	nop
+  10164c:	8d 65 f4             	lea    -0xc(%ebp),%esp
+  10164f:	58                   	pop    %eax
+  101650:	5a                   	pop    %edx
+  101651:	59                   	pop    %ecx
+  101652:	5d                   	pop    %ebp
+  101653:	cf                   	iret   
+
+00101654 <hi>:
+  101654:	55                   	push   %ebp
+  101655:	89 e5                	mov    %esp,%ebp
+  101657:	51                   	push   %ecx
+  101658:	52                   	push   %edx
+  101659:	50                   	push   %eax
+  10165a:	83 e4 f0             	and    $0xfffffff0,%esp
+  10165d:	83 ec 20             	sub    $0x20,%esp
+  101660:	8d 45 04             	lea    0x4(%ebp),%eax
+  101663:	89 44 24 1c          	mov    %eax,0x1c(%esp)
+  101667:	83 ec 0c             	sub    $0xc,%esp
+  10166a:	68 58 20 10 00       	push   $0x102058
+  10166f:	fc                   	cld    
+  101670:	e8 56 02 00 00       	call   1018cb <terminal_writestring>
+  101675:	83 c4 10             	add    $0x10,%esp
+  101678:	90                   	nop
+  101679:	8d 65 f4             	lea    -0xc(%ebp),%esp
+  10167c:	58                   	pop    %eax
+  10167d:	5a                   	pop    %edx
+  10167e:	59                   	pop    %ecx
+  10167f:	5d                   	pop    %ebp
+  101680:	cf                   	iret   
+
+00101681 <vga_entry_color>:
+  101681:	55                   	push   %ebp
+  101682:	89 e5                	mov    %esp,%ebp
+  101684:	8b 45 0c             	mov    0xc(%ebp),%eax
+  101687:	c1 e0 04             	shl    $0x4,%eax
+  10168a:	89 c2                	mov    %eax,%edx
+  10168c:	8b 45 08             	mov    0x8(%ebp),%eax
+  10168f:	09 d0                	or     %edx,%eax
+  101691:	5d                   	pop    %ebp
+  101692:	c3                   	ret    
+
+00101693 <vga_entry>:
+  101693:	55                   	push   %ebp
+  101694:	89 e5                	mov    %esp,%ebp
+  101696:	83 ec 08             	sub    $0x8,%esp
+  101699:	8b 55 08             	mov    0x8(%ebp),%edx
+  10169c:	8b 45 0c             	mov    0xc(%ebp),%eax
+  10169f:	88 55 fc             	mov    %dl,-0x4(%ebp)
+  1016a2:	88 45 f8             	mov    %al,-0x8(%ebp)
+  1016a5:	0f b6 45 fc          	movzbl -0x4(%ebp),%eax
+  1016a9:	0f b6 55 f8          	movzbl -0x8(%ebp),%edx
+  1016ad:	c1 e2 08             	shl    $0x8,%edx
+  1016b0:	09 d0                	or     %edx,%eax
+  1016b2:	c9                   	leave  
+  1016b3:	c3                   	ret    
+
+001016b4 <strlen>:
+  1016b4:	55                   	push   %ebp
+  1016b5:	89 e5                	mov    %esp,%ebp
+  1016b7:	83 ec 10             	sub    $0x10,%esp
+  1016ba:	c7 45 fc 00 00 00 00 	movl   $0x0,-0x4(%ebp)
+  1016c1:	eb 04                	jmp    1016c7 <strlen+0x13>
+  1016c3:	83 45 fc 01          	addl   $0x1,-0x4(%ebp)
+  1016c7:	8b 55 08             	mov    0x8(%ebp),%edx
+  1016ca:	8b 45 fc             	mov    -0x4(%ebp),%eax
+  1016cd:	01 d0                	add    %edx,%eax
+  1016cf:	0f b6 00             	movzbl (%eax),%eax
+  1016d2:	84 c0                	test   %al,%al
+  1016d4:	75 ed                	jne    1016c3 <strlen+0xf>
+  1016d6:	8b 45 fc             	mov    -0x4(%ebp),%eax
+  1016d9:	c9                   	leave  
+  1016da:	c3                   	ret    
+
+001016db <terminal_initialize>:
+  1016db:	55                   	push   %ebp
+  1016dc:	89 e5                	mov    %esp,%ebp
+  1016de:	53                   	push   %ebx
+  1016df:	83 ec 10             	sub    $0x10,%esp
+  1016e2:	c7 05 0c 40 10 00 00 	movl   $0x0,0x10400c
+  1016e9:	00 00 00 
+  1016ec:	c7 05 04 40 10 00 00 	movl   $0x0,0x104004
+  1016f3:	00 00 00 
+  1016f6:	6a 00                	push   $0x0
+  1016f8:	6a 07                	push   $0x7
+  1016fa:	e8 82 ff ff ff       	call   101681 <vga_entry_color>
+  1016ff:	83 c4 08             	add    $0x8,%esp
+  101702:	a2 00 40 10 00       	mov    %al,0x104000
+  101707:	c7 05 08 40 10 00 00 	movl   $0xb8000,0x104008
+  10170e:	80 0b 00 
+  101711:	c7 45 f8 00 00 00 00 	movl   $0x0,-0x8(%ebp)
+  101718:	eb 54                	jmp    10176e <terminal_initialize+0x93>
+  10171a:	c7 45 f4 00 00 00 00 	movl   $0x0,-0xc(%ebp)
+  101721:	eb 3d                	jmp    101760 <terminal_initialize+0x85>
+  101723:	b8 50 00 00 00       	mov    $0x50,%eax
+  101728:	0f af 45 f8          	imul   -0x8(%ebp),%eax
+  10172c:	89 c2                	mov    %eax,%edx
+  10172e:	8b 45 f4             	mov    -0xc(%ebp),%eax
+  101731:	01 d0                	add    %edx,%eax
+  101733:	89 45 f0             	mov    %eax,-0x10(%ebp)
+  101736:	0f b6 05 00 40 10 00 	movzbl 0x104000,%eax
+  10173d:	0f b6 c0             	movzbl %al,%eax
+  101740:	8b 15 08 40 10 00    	mov    0x104008,%edx
+  101746:	8b 4d f0             	mov    -0x10(%ebp),%ecx
+  101749:	01 c9                	add    %ecx,%ecx
+  10174b:	8d 1c 0a             	lea    (%edx,%ecx,1),%ebx
+  10174e:	50                   	push   %eax
+  10174f:	6a 20                	push   $0x20
+  101751:	e8 3d ff ff ff       	call   101693 <vga_entry>
+  101756:	83 c4 08             	add    $0x8,%esp
+  101759:	66 89 03             	mov    %ax,(%ebx)
+  10175c:	83 45 f4 01          	addl   $0x1,-0xc(%ebp)
+  101760:	b8 50 00 00 00       	mov    $0x50,%eax
+  101765:	39 45 f4             	cmp    %eax,-0xc(%ebp)
+  101768:	72 b9                	jb     101723 <terminal_initialize+0x48>
+  10176a:	83 45 f8 01          	addl   $0x1,-0x8(%ebp)
+  10176e:	b8 19 00 00 00       	mov    $0x19,%eax
+  101773:	39 45 f8             	cmp    %eax,-0x8(%ebp)
+  101776:	72 a2                	jb     10171a <terminal_initialize+0x3f>
+  101778:	90                   	nop
+  101779:	8b 5d fc             	mov    -0x4(%ebp),%ebx
+  10177c:	c9                   	leave  
+  10177d:	c3                   	ret    
+
+0010177e <terminal_setcolor>:
+  10177e:	55                   	push   %ebp
+  10177f:	89 e5                	mov    %esp,%ebp
+  101781:	83 ec 04             	sub    $0x4,%esp
+  101784:	8b 45 08             	mov    0x8(%ebp),%eax
+  101787:	88 45 fc             	mov    %al,-0x4(%ebp)
+  10178a:	0f b6 45 fc          	movzbl -0x4(%ebp),%eax
+  10178e:	a2 00 40 10 00       	mov    %al,0x104000
+  101793:	90                   	nop
+  101794:	c9                   	leave  
+  101795:	c3                   	ret    
+
+00101796 <terminal_putentryat>:
+  101796:	55                   	push   %ebp
+  101797:	89 e5                	mov    %esp,%ebp
+  101799:	53                   	push   %ebx
+  10179a:	83 ec 18             	sub    $0x18,%esp
+  10179d:	8b 55 08             	mov    0x8(%ebp),%edx
+  1017a0:	8b 45 0c             	mov    0xc(%ebp),%eax
+  1017a3:	88 55 e8             	mov    %dl,-0x18(%ebp)
+  1017a6:	88 45 e4             	mov    %al,-0x1c(%ebp)
+  1017a9:	b8 50 00 00 00       	mov    $0x50,%eax
+  1017ae:	0f af 45 14          	imul   0x14(%ebp),%eax
+  1017b2:	89 c2                	mov    %eax,%edx
+  1017b4:	8b 45 10             	mov    0x10(%ebp),%eax
+  1017b7:	01 d0                	add    %edx,%eax
+  1017b9:	89 45 f8             	mov    %eax,-0x8(%ebp)
+  1017bc:	0f b6 55 e4          	movzbl -0x1c(%ebp),%edx
+  1017c0:	0f b6 45 e8          	movzbl -0x18(%ebp),%eax
+  1017c4:	0f b6 c0             	movzbl %al,%eax
+  1017c7:	8b 0d 08 40 10 00    	mov    0x104008,%ecx
+  1017cd:	8b 5d f8             	mov    -0x8(%ebp),%ebx
+  1017d0:	01 db                	add    %ebx,%ebx
+  1017d2:	01 cb                	add    %ecx,%ebx
+  1017d4:	52                   	push   %edx
+  1017d5:	50                   	push   %eax
+  1017d6:	e8 b8 fe ff ff       	call   101693 <vga_entry>
+  1017db:	83 c4 08             	add    $0x8,%esp
+  1017de:	66 89 03             	mov    %ax,(%ebx)
+  1017e1:	90                   	nop
+  1017e2:	8b 5d fc             	mov    -0x4(%ebp),%ebx
+  1017e5:	c9                   	leave  
+  1017e6:	c3                   	ret    
+
+001017e7 <terminal_putchar>:
+  1017e7:	55                   	push   %ebp
+  1017e8:	89 e5                	mov    %esp,%ebp
+  1017ea:	53                   	push   %ebx
+  1017eb:	83 ec 04             	sub    $0x4,%esp
+  1017ee:	8b 45 08             	mov    0x8(%ebp),%eax
+  1017f1:	88 45 f8             	mov    %al,-0x8(%ebp)
+  1017f4:	80 7d f8 0a          	cmpb   $0xa,-0x8(%ebp)
+  1017f8:	75 27                	jne    101821 <terminal_putchar+0x3a>
+  1017fa:	a1 0c 40 10 00       	mov    0x10400c,%eax
+  1017ff:	83 c0 01             	add    $0x1,%eax
+  101802:	b9 19 00 00 00       	mov    $0x19,%ecx
+  101807:	ba 00 00 00 00       	mov    $0x0,%edx
+  10180c:	f7 f1                	div    %ecx
+  10180e:	89 d0                	mov    %edx,%eax
+  101810:	a3 0c 40 10 00       	mov    %eax,0x10400c
+  101815:	c7 05 04 40 10 00 00 	movl   $0x0,0x104004
+  10181c:	00 00 00 
+  10181f:	eb 70                	jmp    101891 <terminal_putchar+0xaa>
+  101821:	8b 1d 0c 40 10 00    	mov    0x10400c,%ebx
+  101827:	8b 0d 04 40 10 00    	mov    0x104004,%ecx
+  10182d:	0f b6 05 00 40 10 00 	movzbl 0x104000,%eax
+  101834:	0f b6 d0             	movzbl %al,%edx
+  101837:	0f be 45 f8          	movsbl -0x8(%ebp),%eax
+  10183b:	53                   	push   %ebx
+  10183c:	51                   	push   %ecx
+  10183d:	52                   	push   %edx
+  10183e:	50                   	push   %eax
+  10183f:	e8 52 ff ff ff       	call   101796 <terminal_putentryat>
+  101844:	83 c4 10             	add    $0x10,%esp
+  101847:	a1 04 40 10 00       	mov    0x104004,%eax
+  10184c:	83 c0 01             	add    $0x1,%eax
+  10184f:	a3 04 40 10 00       	mov    %eax,0x104004
+  101854:	a1 04 40 10 00       	mov    0x104004,%eax
+  101859:	ba 50 00 00 00       	mov    $0x50,%edx
+  10185e:	39 d0                	cmp    %edx,%eax
+  101860:	75 2f                	jne    101891 <terminal_putchar+0xaa>
+  101862:	c7 05 04 40 10 00 00 	movl   $0x0,0x104004
+  101869:	00 00 00 
+  10186c:	a1 0c 40 10 00       	mov    0x10400c,%eax
+  101871:	83 c0 01             	add    $0x1,%eax
+  101874:	a3 0c 40 10 00       	mov    %eax,0x10400c
+  101879:	a1 0c 40 10 00       	mov    0x10400c,%eax
+  10187e:	ba 19 00 00 00       	mov    $0x19,%edx
+  101883:	39 d0                	cmp    %edx,%eax
+  101885:	75 0a                	jne    101891 <terminal_putchar+0xaa>
+  101887:	c7 05 0c 40 10 00 00 	movl   $0x0,0x10400c
+  10188e:	00 00 00 
+  101891:	8b 5d fc             	mov    -0x4(%ebp),%ebx
+  101894:	c9                   	leave  
+  101895:	c3                   	ret    
+
+00101896 <terminal_write>:
+  101896:	55                   	push   %ebp
+  101897:	89 e5                	mov    %esp,%ebp
+  101899:	83 ec 10             	sub    $0x10,%esp
+  10189c:	c7 45 fc 00 00 00 00 	movl   $0x0,-0x4(%ebp)
+  1018a3:	eb 1b                	jmp    1018c0 <terminal_write+0x2a>
+  1018a5:	8b 55 08             	mov    0x8(%ebp),%edx
+  1018a8:	8b 45 fc             	mov    -0x4(%ebp),%eax
+  1018ab:	01 d0                	add    %edx,%eax
+  1018ad:	0f b6 00             	movzbl (%eax),%eax
+  1018b0:	0f be c0             	movsbl %al,%eax
+  1018b3:	50                   	push   %eax
+  1018b4:	e8 2e ff ff ff       	call   1017e7 <terminal_putchar>
+  1018b9:	83 c4 04             	add    $0x4,%esp
+  1018bc:	83 45 fc 01          	addl   $0x1,-0x4(%ebp)
+  1018c0:	8b 45 fc             	mov    -0x4(%ebp),%eax
+  1018c3:	3b 45 0c             	cmp    0xc(%ebp),%eax
+  1018c6:	72 dd                	jb     1018a5 <terminal_write+0xf>
+  1018c8:	90                   	nop
+  1018c9:	c9                   	leave  
+  1018ca:	c3                   	ret    
+
+001018cb <terminal_writestring>:
+  1018cb:	55                   	push   %ebp
+  1018cc:	89 e5                	mov    %esp,%ebp
+  1018ce:	ff 75 08             	pushl  0x8(%ebp)
+  1018d1:	e8 de fd ff ff       	call   1016b4 <strlen>
+  1018d6:	83 c4 04             	add    $0x4,%esp
+  1018d9:	50                   	push   %eax
+  1018da:	ff 75 08             	pushl  0x8(%ebp)
+  1018dd:	e8 b4 ff ff ff       	call   101896 <terminal_write>
+  1018e2:	83 c4 08             	add    $0x8,%esp
+  1018e5:	90                   	nop
+  1018e6:	c9                   	leave  
+  1018e7:	c3                   	ret    
