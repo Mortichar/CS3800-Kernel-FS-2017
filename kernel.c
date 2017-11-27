@@ -38,7 +38,7 @@ void kernel_main(void) {
   IRQ_clear_mask(0x1);
 
   /* Interrupt 0x42 prints 'hi'! */
-  add_idt_entry(0x42, (uintptr_t) &hi);
+  //add_idt_entry(0x42, (uintptr_t) &hi);
 
   /* Enable interrupts */
   enable_interrupts();
@@ -46,11 +46,11 @@ void kernel_main(void) {
 	/* Initialize terminal interface */
 	terminal_initialize();
 
-	/* Newline support is left as an exercise. */
-	terminal_writestring("Hello, kernel World!\nThis is a second line\n");
+	// /* Newline support is left as an exercise. */
+	// terminal_writestring("Hello, kernel World!\nThis is a second line\n");
 
-  /* Send interrupt 0x42 */
-  asm("int $0x42");
+  // /* Send interrupt 0x42 */
+  // asm("int $0x42");
 
   /* Hang forever */
   for(;;) {

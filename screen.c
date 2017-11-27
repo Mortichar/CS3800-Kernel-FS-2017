@@ -80,8 +80,8 @@ unsigned char _80x25_text[] =
 	0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D, 0x3E, 0x3F,
 	0x0C, 0x00, 0x0F, 0x08, 0x00
 };  
-static const size_t VGA_WIDTH = 80;
-static const size_t VGA_HEIGHT = 25;
+#define VGA_WIDTH 80
+#define VGA_HEIGHT 25
 
 size_t terminal_row;
 size_t terminal_column;
@@ -109,9 +109,11 @@ unsigned char _320x200x256[] =
 	0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
 	0x41, 0x00, 0x0F, 0x00,	0x00
 };
-static const size_t VIDEO_WIDTH = 320;
-static const size_t VIDEO_HEIGHT = 200;
-uint8_t* video_buffer;
+#define VIDEO_WIDTH 320
+#define VIDEO_HEIGHT 200
+uint8_t* framebuffer;
+
+size_t terminal_contents[VIDEO_WIDTH * VIDEO_HEIGHT];
 
 // outb(0x3D4, 0x0F);
 // outb(0x3D5, (uint8_t) (pos & 0xFF));
@@ -195,49 +197,72 @@ void move_cursor(size_t direction_enum){
 	update_cursor();	
 }
 
+void get_framebuffer(void){
+	uint32_t loc;
+	//Request GC 6
+	outb(VGA_GC_INDEX, 6);
+	loc = inb(VGA_GC_DATA);
+	loc >>= 2;
+	loc &= 0x03;
+	switch(loc){
+		case 0 :
+		case 1 :
+			loc = 0xA0000;
+			break;
+		case 2 :
+			loc = 0xB0000;
+			break;
+		case 3 :
+			loc = 0xB8000;
+			break;
+	}
+	if(loc == 0x0B8000){
+		terminal_writestring("VGA Address 0x0B8000\n");
+	}
+	framebuffer = (uint8_t*)loc;
+	if(framebuffer == 0xB8000){
+		terminal_writestring("Framebuffer correctly located\n");
+	}
+}
+
 void terminal_initialize(void) {
 	terminal_row = 0;
 	terminal_column = 0;
 	terminal_color = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
-	terminal_buffer = (uint16_t*) 0xB8000;
+	terminal_buffer = (uint16_t*) 0xB8000;//VGA Text Location
 	for (size_t y = 0; y < VGA_HEIGHT; y++) {
 		for (size_t x = 0; x < VGA_WIDTH; x++) {
 			const size_t index = y * VGA_WIDTH + x;
 			terminal_buffer[index] = vga_entry(' ', terminal_color);
 		}
 	}
+	get_framebuffer();
 	update_cursor();
 }
 
-uint32_t get_framebuffer(void){
-	uint32_t loc;
-	//Request GC 6
-	outb(VGA_GC_INDEX, 6);
-	loc = inb(VGA_GC_DATA);
-	loc >>= 2;
-	switch(loc){
-		case 0 :
-		case 1 :
-			loc = 0xA000;
-			break;
-		case 2 :
-			loc = 0xB000;
-			break;
-		case 3 :
-			loc = 0xB800;
-			break;
+void save_text(void){
+	for(uint32_t y =  0; y < VIDEO_HEIGHT; y++){
+		for(uint32_t x = 0; x < VIDEO_WIDTH; x++){
+			terminal_contents[y * VIDEO_WIDTH + x] = framebuffer[y * VIDEO_WIDTH + x];
+		}
 	}
-	return loc;	
+}
+
+void reinstate_text(void){
+	for(uint32_t y =  0; y < VIDEO_HEIGHT; y++){
+		for(uint32_t x = 0; x < VIDEO_WIDTH; x++){
+			framebuffer[y * VIDEO_WIDTH + x] = terminal_contents[y * VIDEO_WIDTH + x];
+		}
+	}
 }
 
 void write_pixel(uint16_t x, uint16_t y, uint8_t c){
-	size_t offset = y * VIDEO_WIDTH + x;
-	video_buffer[offset] = c;
+	framebuffer[y * VIDEO_WIDTH + x] = c;
 }
 
 void clear_display(void){
-	for(size_t y = 0; y < VIDEO_HEIGHT; y++){
-		for(size_t x = 0; x < VIDEO_WIDTH; x++){
+	for(uint16_t y = 0; y < VIDEO_HEIGHT; y++){
+		for(uint16_t x = 0; x < VIDEO_WIDTH; x++){
 			write_pixel(x, y, 0);
 		}
 	}
@@ -253,9 +278,8 @@ void draw(void){
 
 void text_to_video(void){
 	write_regs(_320x200x256);
-	video_buffer = (void*)get_framebuffer();
 }
- 
+
 void video_to_text(void){
 	write_regs(_80x25_text);
 	update_cursor();

@@ -24,6 +24,10 @@ void terminal_putchar(char c);
 void terminal_back(void);
 /* Set up the terminal display */
 void terminal_initialize(void);
+/* Saves the terminal state */
+void save_text(void);
+/* Reinstates the saved terminal state */
+void reinstate_text(void);
 /* Swap from 80x25xtext to 320x200x256 video */
 void text_to_video(void);
 /*Swap from 320x200x256 video to 80x25xtext text */
