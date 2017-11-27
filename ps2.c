@@ -1,5 +1,20 @@
 #include "ps2.h"
 
+const unsigned char set1codes[128] =
+{
+  0, 0, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 0, 0, 0, 0,
+  'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', 0, 0, 'a','s',
+  'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`', 0, '\\', 'z', 'x', 'c', 'v',
+  'b', 'n', 'm', ',', '.', '/', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+};
+
+uint8_t lshift_held = 0;
+uint8_t rshift_held = 0;
+
 char nybble2char(uint8_t nybble)
 {
   nybble &= 0x0F; // Clear top bits
@@ -40,5 +55,6 @@ void getScancodeByte_loop(char* buf)
 
 void getScancodeByte(char* buf)
 {
+  //why are scan codes converted to ascii?
   byte2chars(getScancode(), buf);
 }
