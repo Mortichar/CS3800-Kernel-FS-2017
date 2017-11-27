@@ -86,7 +86,7 @@ unsigned char _80x25_text[] =
 size_t terminal_row;
 size_t terminal_column;
 uint8_t terminal_color;
-uint16_t* terminal_buffer;
+uint8_t* vga_buffer;
 //graphical
 //TODO: Dynamic resolution
 //Current: 320x200x256 (256 colors)
@@ -111,7 +111,6 @@ unsigned char _320x200x256[] =
 };
 #define VIDEO_WIDTH 320
 #define VIDEO_HEIGHT 200
-uint8_t* framebuffer;
 
 size_t terminal_contents[VIDEO_WIDTH * VIDEO_HEIGHT];
 
@@ -197,7 +196,7 @@ void move_cursor(size_t direction_enum){
 	update_cursor();	
 }
 
-void get_framebuffer(void){
+void get_buffer(void){
 	uint32_t loc;
 	//Request GC 6
 	outb(VGA_GC_INDEX, 6);
@@ -216,34 +215,30 @@ void get_framebuffer(void){
 			loc = 0xB8000;
 			break;
 	}
-	if(loc == 0x0B8000){
-		terminal_writestring("VGA Address 0x0B8000\n");
-	}
-	framebuffer = (uint8_t*)loc;
-	if(framebuffer == 0xB8000){
-		terminal_writestring("Framebuffer correctly located\n");
-	}
+	vga_buffer = (uint8_t*)loc;
 }
 
 void terminal_initialize(void) {
 	terminal_row = 0;
 	terminal_column = 0;
 	terminal_color = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
-	terminal_buffer = (uint16_t*) 0xB8000;//VGA Text Location
+	get_buffer();
 	for (size_t y = 0; y < VGA_HEIGHT; y++) {
 		for (size_t x = 0; x < VGA_WIDTH; x++) {
 			const size_t index = y * VGA_WIDTH + x;
-			terminal_buffer[index] = vga_entry(' ', terminal_color);
+			vga_buffer[index * 2] = ' ';
+			vga_buffer[index * 2 + 1] = terminal_color;
 		}
 	}
-	get_framebuffer();
-	update_cursor();
+	if(vga_buffer == 0xB8000){
+		terminal_writestring("Buffer located at 0xB8000\n");
+	}
 }
 
 void save_text(void){
 	for(uint32_t y =  0; y < VIDEO_HEIGHT; y++){
 		for(uint32_t x = 0; x < VIDEO_WIDTH; x++){
-			terminal_contents[y * VIDEO_WIDTH + x] = framebuffer[y * VIDEO_WIDTH + x];
+			terminal_contents[y * VIDEO_WIDTH + x] = vga_buffer[y * VIDEO_WIDTH + x];
 		}
 	}
 }
@@ -251,19 +246,20 @@ void save_text(void){
 void reinstate_text(void){
 	for(uint32_t y =  0; y < VIDEO_HEIGHT; y++){
 		for(uint32_t x = 0; x < VIDEO_WIDTH; x++){
-			framebuffer[y * VIDEO_WIDTH + x] = terminal_contents[y * VIDEO_WIDTH + x];
+			vga_buffer[y * VIDEO_WIDTH + x] = terminal_contents[y * VIDEO_WIDTH + x];
 		}
 	}
 }
 
 void write_pixel(uint16_t x, uint16_t y, uint8_t c){
-	framebuffer[y * VIDEO_WIDTH + x] = c;
+	uint8_t* pixelAddress = vga_buffer + y * VIDEO_WIDTH + x;
+	*pixelAddress = c;
 }
 
 void clear_display(void){
 	for(uint16_t y = 0; y < VIDEO_HEIGHT; y++){
 		for(uint16_t x = 0; x < VIDEO_WIDTH; x++){
-			write_pixel(x, y, 0);
+			write_pixel(x, y, 13);
 		}
 	}
 }
@@ -278,10 +274,12 @@ void draw(void){
 
 void text_to_video(void){
 	write_regs(_320x200x256);
+	get_buffer();
 }
 
 void video_to_text(void){
 	write_regs(_80x25_text);
+	get_buffer();
 	update_cursor();
 }
 
@@ -291,7 +289,8 @@ void terminal_setcolor(uint8_t color) {
  
 void terminal_putentryat(char c, uint8_t color, size_t x, size_t y) {
 	const size_t index = y * VGA_WIDTH + x;
-	terminal_buffer[index] = vga_entry(c, color);
+	vga_buffer[index * 2] = c;
+	vga_buffer[index * 2 + 1] = color;
 }
 
 void terminal_back(){
@@ -301,7 +300,7 @@ void terminal_back(){
 		}
 		terminal_row--;
 		for(size_t i = VGA_WIDTH - 1; i; i--){
-			if((uint8_t)(terminal_buffer[terminal_row * VGA_WIDTH + i]) > 0x20)
+			if((uint8_t)(vga_buffer[(terminal_row * VGA_WIDTH + i) * 2]) > 0x20)
 			{
 				terminal_column = i + 1;
 				break;
