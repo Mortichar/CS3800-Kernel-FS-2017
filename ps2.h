@@ -46,6 +46,7 @@ wiki.osdev.org/PS/2_Keyboard#Scan_Code_Set_1
  *  along with many KEY_xxxxx_UPs
  */
 extern const unsigned char set1codes[];
+extern const unsigned char set1codes_shift[];
 extern uint8_t lshift_held;
 extern uint8_t rshift_held;
 

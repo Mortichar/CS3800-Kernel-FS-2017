@@ -235,21 +235,22 @@ void terminal_initialize(void) {
 	}
 }
 
-void save_text(void){
-	for(uint32_t y =  0; y < VIDEO_HEIGHT; y++){
-		for(uint32_t x = 0; x < VIDEO_WIDTH; x++){
-			terminal_contents[y * VIDEO_WIDTH + x] = vga_buffer[y * VIDEO_WIDTH + x];
-		}
-	}
-}
+//TODO: Save state between swaps
+// void save_text(void){
+// 	for(uint16_t y =  0; y < VIDEO_HEIGHT; y++){
+// 		for(uint16_t x = 0; x < VIDEO_WIDTH; x++){
+// 			terminal_contents[y * VIDEO_WIDTH + x] = vga_buffer[y * VIDEO_WIDTH + x];
+// 		}
+// 	}
+// }
 
-void reinstate_text(void){
-	for(uint32_t y =  0; y < VIDEO_HEIGHT; y++){
-		for(uint32_t x = 0; x < VIDEO_WIDTH; x++){
-			vga_buffer[y * VIDEO_WIDTH + x] = terminal_contents[y * VIDEO_WIDTH + x];
-		}
-	}
-}
+// void reinstate_text(void){
+// 	for(uint16_t y =  0; y < VIDEO_HEIGHT; y++){
+// 		for(uint16_t x = 0; x < VIDEO_WIDTH; x++){
+// 			vga_buffer[y * VIDEO_WIDTH + x] = terminal_contents[y * VIDEO_WIDTH + x];
+// 		}
+// 	}
+// }
 
 void write_pixel(uint16_t x, uint16_t y, uint8_t c){
 	uint8_t* pixelAddress = vga_buffer + y * VIDEO_WIDTH + x;
@@ -265,9 +266,9 @@ void clear_display(void){
 }
 
 void draw(void){
-	for(size_t y = 0; y < VGA_HEIGHT; y++){
-		for(size_t x = 0; x < VGA_WIDTH; x++){
-
+	for(uint16_t y = 0; y < VIDEO_HEIGHT; y++){
+		for(uint16_t x = 0; x < VIDEO_WIDTH; x++){
+			write_pixel(x, y, ((y + x) % 2 ? 0x00 : 0x0F));
 		}
 	}
 }
@@ -279,8 +280,7 @@ void text_to_video(void){
 
 void video_to_text(void){
 	write_regs(_80x25_text);
-	get_buffer();
-	update_cursor();
+	terminal_initialize();
 }
 
 void terminal_setcolor(uint8_t color) {

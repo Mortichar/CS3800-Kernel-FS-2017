@@ -19,14 +19,15 @@ void hi(void* frame)
 void handle_keypress(uint8_t c){
   if(c == KEY_TAB_UP){
     if(VGA_MODE == TEXT){
-      save_text();
+      //save_text();
       text_to_video();
       clear_display();
+      draw();
       VGA_MODE = VIDEO;
       return;
     }else{
       video_to_text();
-      reinstate_text();
+      //reinstate_text();
       VGA_MODE = TEXT;
       return;
     } //In video mode; TODO: More video mode options
@@ -62,17 +63,16 @@ void handle_keypress(uint8_t c){
       return;
     }
     //Convert to ASCII
-    c = set1codes[c];
+    if(lshift_held || rshift_held){
+      c = set1codes_shift[c];
+    }else{
+      c = set1codes[c];
+    }
     if(!c){//character not handled
       return;
     }
-    if(lshift_held || rshift_held){
-      if(c > 0x0B){
-        terminal_putchar((c - 32) % 128);
-      } // no capitalization on numbers
-    }else{
-        terminal_putchar(c);
-    }
+    terminal_putchar(c);
+
   }
   if(VGA_MODE == VIDEO){
   }
