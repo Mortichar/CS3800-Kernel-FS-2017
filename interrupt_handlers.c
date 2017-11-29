@@ -75,5 +75,6 @@ void handle_keypress(uint8_t c){
 
   }
   if(VGA_MODE == VIDEO){
+    //TODO
   }
 }

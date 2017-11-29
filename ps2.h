@@ -46,6 +46,12 @@ wiki.osdev.org/PS/2_Keyboard#Scan_Code_Set_1
  *  along with many KEY_xxxxx_UPs
  */
 extern const unsigned char set1codes[];
+/*
+ * This is a 128 entry array with ASCII values for all of the scancodes.
+ * set1codes_shift[scancode_value] will give you the ASCII for that scancode, 
+ * shifted. Note: Special functions, such as the escape key, may be undefined,
+ * along with many KEY_xxxxx_UPs
+ */
 extern const unsigned char set1codes_shift[];
 extern uint8_t lshift_held;
 extern uint8_t rshift_held;
